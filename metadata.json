@@ -1,10 +1,12 @@
 {
   "name": "encore-wmi_obj",
-  "version": "0.1.0",
+  "version": "1.1.0",
   "author": "Encore Technologies",
-  "summary": "",
+  "summary": "Manages Windows Management Instrumentation (WMI) objects",
   "license": "Apache-2.0",
-  "source": "",
+  "source": "https://github.com/EncoreTechnologies/puppet-wmi_obj",,
+  "project_page": "https://github.com/EncoreTechnologies/puppet-wmi_obj",
+  "issues_url": "https://github.com/EncoreTechnologies/puppet-wmi_obj/issues",
   "dependencies": [
 
   ],
