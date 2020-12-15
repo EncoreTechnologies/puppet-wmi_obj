@@ -8,11 +8,11 @@ Installation
 
 Install from Puppet Forge:
 
-    puppet module install badgerious/wmi_obj
+    puppet module install encore/wmi_obj
 
 Install from Github (do this in your modulepath):
 
-    git clone https://github.com/badgerious/puppet-wmi_obj wmi_obj
+    git clone https://github.com/EncoreTechnologies/puppet-wmi_obj wmi_obj
 
 Usage
 -----

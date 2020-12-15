@@ -18,13 +18,16 @@ Puppet::Type.newtype(:wmi_obj) do
 
   ensurable
 
-  newparam(:name)
+  newparam(:name, namevar: true)
+
   newparam(:wmiclass) do
     munge { |val| val.downcase }
   end
+
   newparam(:namespace) do
     munge { |val| val.downcase }
   end
+
   newproperty(:props) do
     validate do |val|
       val.class == Hash or fail("'props' must be a hash")
