@@ -1,13 +1,13 @@
 require 'win32ole' if Puppet.features.microsoft_windows?
 
 Puppet::Type.newtype(:wmi_class_purge) do
+  newparam(:name, namevar: true)
+
   newparam(:wmiclass) do
-    isnamevar
     munge { |val| val.downcase }
   end
 
   newparam(:namespace) do
-    isnamevar
     munge { |val| val.downcase }
   end
 
