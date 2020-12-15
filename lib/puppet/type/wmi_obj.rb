@@ -4,46 +4,54 @@ Puppet::Type.newtype(:wmi_obj) do
   @keyprops = {}
 
   def self.keyprops(namespace, wmiclass)
-    wmiclass = wmiclass.downcase.intern
-    namespace = namespace.downcase.intern
+    wmiclass = wmiclass.downcase.to_sym
+    namespace = namespace.downcase.to_sym
     @keyprops[namespace] = {} unless @keyprops[namespace]
     unless @keyprops[namespace][wmiclass]
       klass = WIN32OLE.connect("winmgmts://./#{namespace}:#{wmiclass}")
-      @keyprops[namespace][wmiclass] = klass.Properties_.each.select do |p|
+      props = klass.Properties_.each.select do |p|
         p.Qualifiers_.each.any? { |q| q.Name == 'key' && q.Value == true }
-      end.map { |p| p.Name.downcase }.sort
+      end
+      @keyprops[namespace][wmiclass] = props.map { |p| p.Name.downcase }.sort
     end
     @keyprops[namespace][wmiclass]
   end
 
   ensurable
 
-  newparam(:name)
+  newparam(:name, namevar: true)
+
   newparam(:wmiclass) do
     munge { |val| val.downcase }
   end
+
   newparam(:namespace) do
     munge { |val| val.downcase }
   end
+
   newproperty(:props) do
     validate do |val|
-      val.class == Hash or fail("'props' must be a hash")
+      unless val.is_a?(Hash)
+        raise "'props' must be a hash"
+      end
     end
     munge do |val|
       newhash = {}
-      val.each { |k,v| newhash[k.downcase] = v }
+      val.each { |k, v| newhash[k.downcase] = v }
       newhash
     end
   end
 
   validate do
-    fail "Missing required parameter 'namespace'" if self[:namespace].nil?
-    fail "Missing required parameter 'wmiclass'" if self[:wmiclass].nil?
-    fail "Missing required parameter 'props'" if self[:props].nil?
+    raise "Missing required parameter 'namespace'" if self[:namespace].nil?
+    raise "Missing required parameter 'wmiclass'" if self[:wmiclass].nil?
+    raise "Missing required parameter 'props'" if self[:props].nil?
 
-    keys = self[:props].map { |k,v| k.downcase }
+    keys = self[:props].map { |k, _v| k.downcase }
     self.class.keyprops(self[:namespace], self[:wmiclass]).each do |keyprop|
-      keys.include?(keyprop) or fail "Missing key property '#{keyprop}' for WMI class '#{self[:wmiclass]}'"
+      unless keys.include?(keyprop)
+        raise "Missing key property '#{keyprop}' for WMI class '#{self[:wmiclass]}'"
+      end
     end
 
     if catalog
