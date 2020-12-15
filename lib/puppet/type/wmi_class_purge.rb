@@ -1,12 +1,9 @@
 require 'win32ole' if Puppet.features.microsoft_windows?
 
 Puppet::Type.newtype(:wmi_class_purge) do
-  
-  newparam(:name, namevar: true)
-  
   newparam(:wmiclass) do
     isnamevar
-    munge { |val | val.downcase }
+    munge { |val| val.downcase }
   end
 
   newparam(:namespace) do
@@ -21,12 +18,11 @@ Puppet::Type.newtype(:wmi_class_purge) do
   newparam(:postfilter) do
     defaultto(:undef)
     validate do |val|
-      case val
-      when :undef, Hash
-      else
-        fail "'postfilter' must be a hash"
+      unless val == :undef || val.is_a?(Hash)
+        raise "'postfilter' must be a hash"
       end
     end
+
     munge do |hash|
       if hash == :undef
         :undef
@@ -49,30 +45,32 @@ Puppet::Type.newtype(:wmi_class_purge) do
     instances = wmi.ExecQuery(query).each.to_a
     if self[:postfilter] != :undef
       instances = instances.select do |obj|
-        self[:postfilter].all? { |prop, val| val === obj.send(prop) }
+        self[:postfilter].all? { |prop, val| Regexp.new(val).match?(obj.send(prop)) }
       end
     end
+
     instances.map! do |obj|
       hash = {}
-      keyprops.map { |prop| hash[prop] =  obj.send(prop) }
+      keyprops.map { |prop| hash[prop] = obj.send(prop) }
       hash
     end
 
     resources = catalog.resources.select do |r|
       r.class == self.class::PURGE_CLASS && r[:namespace] == self[:namespace] && r[:wmiclass] == self[:wmiclass]
-    end.map do |r|
+    end
+    resources = resources.map do |r|
       hash = {}
       keyprops.map { |prop| hash[prop] = r[:props][prop] }
       hash
     end
 
     (instances - resources).map do |props|
-      props_string = props.map { |k,v| "#{k}=#{v}" }.join(',')
-      r = self.class::PURGE_CLASS.new(:title => "#{self[:namespace]}:#{self[:wmiclass]}:#{props_string}",
-                                      :namespace => self[:namespace],
-                                      :wmiclass => self[:wmiclass],
-                                      :props => props,
-                                      :ensure => :absent)
+      props_string = props.map { |k, v| "#{k}=#{v}" }.join(',')
+      r = self.class::PURGE_CLASS.new(title: "#{self[:namespace]}:#{self[:wmiclass]}:#{props_string}",
+                                      namespace: self[:namespace],
+                                      wmiclass: self[:wmiclass],
+                                      props: props,
+                                      ensure: :absent)
       r.purging
       r
     end

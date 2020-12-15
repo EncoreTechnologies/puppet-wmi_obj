@@ -2,13 +2,12 @@ require 'win32ole' if Puppet.features.microsoft_windows?
 
 Puppet::Type.type(:wmi_obj).provide(:wmi_obj) do
   def exists?
-    whereclause = self.class.resource_type.keyprops(@resource[:namespace], @resource[:wmiclass]).map do |prop|
-      "#{prop}='#{@resource[:props][prop]}'"
-    end.join(" AND ")
+    name_props = self.class.resource_type.keyprops(@resource[:namespace], @resource[:wmiclass])
+    whereclause = name_props.map { |prop| "#{prop}='#{@resource[:props][prop]}'" }.join(' AND ')
 
     wmi = WIN32OLE.connect("winmgmts://./#{@resource[:namespace]}")
     @obj = wmi.ExecQuery("SELECT * FROM #{@resource[:wmiclass]} WHERE #{whereclause}").each.first
-    ! @obj.nil?
+    !@obj.nil?
   end
 
   def set_props(obj, newprops)

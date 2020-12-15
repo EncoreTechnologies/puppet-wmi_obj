@@ -4,7 +4,7 @@
   "author": "Encore Technologies",
   "summary": "Manages Windows Management Instrumentation (WMI) objects",
   "license": "Apache-2.0",
-  "source": "https://github.com/EncoreTechnologies/puppet-wmi_obj",,
+  "source": "https://github.com/EncoreTechnologies/puppet-wmi_obj",
   "project_page": "https://github.com/EncoreTechnologies/puppet-wmi_obj",
   "issues_url": "https://github.com/EncoreTechnologies/puppet-wmi_obj/issues",
   "dependencies": [
